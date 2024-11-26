@@ -1,8 +1,9 @@
 # TetrioReplayCalculator
-Allows you to calculate certain things on a replay (.ttrm) from tetrio
+Allows you to calculate certain things on a replay (.ttrm) from tetrio.
 
+Unfortunately, program does not look as good as Tetrio's GUI design, as this is just a project for fun.
 Automatically calculates app, and allows you to calculate averages for specific rounds. This program only works for 1v1 VS. (i have not tried it with anything else, so be wary.)
-Upon run, it opens a file window asking you to open a .ttrm file. Program will do everything after that. 
+Upon run, it opens a file window asking you to open a .ttrm file.
 
 Works for replays after 11/26/24; Tetrio at some point changed their way of storing their replay files and it breaks this program. Sorry, I don't know when. If it breaks, it's _probably_ because of that.
 
