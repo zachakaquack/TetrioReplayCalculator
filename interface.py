@@ -3,7 +3,7 @@ import calculator
 from tkinter import DoubleVar, StringVar, BooleanVar
 
 import customtkinter as ctk
-from customtkinter import CTkFrame, CTkLabel, CTkFont
+from customtkinter import CTkFrame, CTkLabel, CTkFont, CTkScrollableFrame
 
 
 class Program(ctk.CTk):
@@ -33,23 +33,30 @@ class Program(ctk.CTk):
         self.main_frame.rowconfigure(0, weight=1, uniform="a")
 
         self.main_frame.columnconfigure(0, weight=1, uniform="a")
-        self.main_frame.columnconfigure(3, weight=1, uniform="a")
-        self.main_frame.columnconfigure(6, weight=1, uniform="a")
-        self.main_frame.columnconfigure((1, 2, 4, 5), weight=3, uniform="a")
 
-        self.round_count_section = CTkFrame(self.main_frame)
+        self.rounds = CTkScrollableFrame(self.main_frame)
+        self.rounds.grid(row=0, column=0, sticky="nsew")
+
+        self.rounds.rowconfigure(0, weight=1, uniform="a")
+
+        self.rounds.columnconfigure(0, weight=1, uniform="a")
+        self.rounds.columnconfigure(3, weight=1, uniform="a")
+        self.rounds.columnconfigure(6, weight=1, uniform="a")
+        self.rounds.columnconfigure((1, 2, 4, 5), weight=3, uniform="a")
+
+        self.round_count_section = CTkFrame(self.rounds)
         self.round_count_section.grid(row=0, column=0, sticky="nsew")
 
-        self.left_rounds_section = CTkFrame(self.main_frame)
+        self.left_rounds_section = CTkFrame(self.rounds)
         self.left_rounds_section.grid(row=0, column=1, columnspan=2, sticky="nsew")
 
-        self.round_timer_section = CTkFrame(self.main_frame)
+        self.round_timer_section = CTkFrame(self.rounds)
         self.round_timer_section.grid(row=0, column=3, sticky="nsew")
 
-        self.right_rounds_section = CTkFrame(self.main_frame)
+        self.right_rounds_section = CTkFrame(self.rounds)
         self.right_rounds_section.grid(row=0, column=4, columnspan=2, sticky="nsew")
 
-        self.round_check_section = CTkFrame(self.main_frame)
+        self.round_check_section = CTkFrame(self.rounds)
         self.round_check_section.grid(row=0, column=6, sticky="nsew")
 
         # self.sidebar_frame = CTkFrame(self, fg_color="pink")
@@ -136,9 +143,8 @@ class TopBar(ctk.CTkFrame):
         averages = calculator.get_player_data()
         player_one = averages[0]
         player_two = averages[1]
-        print(averages)
 
-        font=CTkFont(family="Calibiri", weight="bold", size=48)
+        font = CTkFont(family="Calibiri", weight="bold", size=48)
 
         CTkLabel(self, text=player_one.username, font=font).grid(row=0, column=0, sticky="nsew", pady=20)
         CTkLabel(self, text=player_two.username, font=font).grid(row=0, column=1, sticky="nsew", pady=20)

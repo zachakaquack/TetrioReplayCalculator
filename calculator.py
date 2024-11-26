@@ -9,6 +9,7 @@ try:
     with open(askopenfilename(title="Pick a .ttrm: a Tetrio Replay File", filetypes=file_types)) as file:
         data = json.load(file)
 except FileNotFoundError:
+    print("File not found! Relaunch program and try again.")
     exit()
 
 
