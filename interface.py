@@ -86,6 +86,7 @@ class Program(ctk.CTk):
         Sidebar(self)
         TopBar(self)
 
+        self.enabled_rounds = []
 
         rounds = CTkScrollableFrame(self.main_frame)
         rounds.grid(row=0, column=0, sticky="nsew")
