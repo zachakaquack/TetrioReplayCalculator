@@ -4,13 +4,16 @@ from tkinter.filedialog import askopenfilename
 # file types recommended
 file_types = [("Replay Files", "*.ttrm")]
 
+
 # load the file
-try:
-    with open(askopenfilename(title="Pick a .ttrm: a Tetrio Replay File", filetypes=file_types)) as file:
-        data = json.load(file)
-except FileNotFoundError:
-    print("File not found! Relaunch program and try again.")
-    exit()
+def load_file():
+    try:
+        with open(askopenfilename(title="Pick a .ttrm: a Tetrio Replay File", filetypes=file_types)) as file:
+            global data
+            data = json.load(file)
+    except:
+        print("File not found! Relaunch program and try again.")
+        print("SOMETHING IS GOING WRONG !!!!!!!!!!!!!!!!")
 
 
 class Player:
@@ -32,7 +35,7 @@ class Player:
 
 
 class Round:
-    def __init__(self, usernames, apms, ppss, vss, round_number, round_length):
+    def __init__(self, usernames, apms, ppss, vss, round_number, round_length, winner):
         self.usernames = usernames
         self.apms = apms
         self.ppss = ppss
@@ -40,6 +43,7 @@ class Round:
         self.apps = self.calculate_app()
         self.round_number = round_number
         self.round_length = round_length
+        self.winner = winner
 
     def print_information(self):
         print(f"ROUND NUMBER: {self.round_number}\n"
@@ -74,6 +78,8 @@ def get_player_data():
             leaderboard[i]["stats"]["vsscore"]
         )
         players.append(player)
+    #print(players[0].apm)
+    #print(players[1].apm)
     return players
 
 
@@ -104,14 +110,14 @@ def get_round_information():
             ppss = [winner_data["pps"], loser_data["pps"]]
             vss = [winner_data["vsscore"], loser_data["vsscore"]]
 
-            rounds.append(Round(names, apms, ppss, vss, i + 1, round_length))
+            rounds.append(Round(names, apms, ppss, vss, i + 1, round_length, winner_name))
 
         else:
             apms = [loser_data["apm"], winner_data["apm"]]
             ppss = [loser_data["pps"], winner_data["pps"]]
             vss = [loser_data["vsscore"], winner_data["vsscore"]]
 
-            rounds.append(Round(names, apms, ppss, vss, i + 1, round_length))
+            rounds.append(Round(names, apms, ppss, vss, i + 1, round_length, winner_name))
 
     return rounds
 
@@ -156,8 +162,9 @@ def average_stats(rounds):
 
         # divide by length of the list, aka the amount of rounds
         stats_list.append([round(avg_apm / len(rounds_to_calculate), 2),
-                     round(avg_pps / len(rounds_to_calculate), 2),
-                     round(avg_vs / len(rounds_to_calculate), 2),
-                     round(avg_app / len(rounds_to_calculate), 2)])
+                           round(avg_pps / len(rounds_to_calculate), 2),
+                           round(avg_vs / len(rounds_to_calculate), 2),
+                           round(avg_app / len(rounds_to_calculate), 2)])
     return stats_list
 
+load_file()
