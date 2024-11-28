@@ -20,7 +20,7 @@ This program only works for 1v1 VS. (i have not tried it with anything else, so 
 ![Screenshot of the extra info on the rounds, where many things are calculated.](/assets/zach_vs_agar_more_info_rounds.PNG)
 
 
-If you have any ideas on anything else you want to be able to calculate in the program, message me on discord - zachakaquack
+If you have any ideas on anything else you want to be able to calculate in the program, message me on discord - @zachakaquack
 
 # [HOW TO INSTALL AND USE TETRIO REPLAY CALCULATOR](https://www.youtube.com/watch?v=6544Zsfbkyo)
 1. Go to [the releases page.](https://github.com/zachakaquack/TetrioReplayCalculator/releases)
@@ -30,5 +30,6 @@ If you have any ideas on anything else you want to be able to calculate in the p
 ## Extra
 Works for replays after 11/26/24; Tetrio at some point changed their way of storing their replay files and it breaks this program. Sorry, I don't know when. If it breaks, it's _probably_ because of that.
 Runs on py 3.12 w/ CustomTkinter. hopefully works for you lol
+remember, i made this in two days, completely on my own (except for that averages thing from osk). this was just for fun, dont bully me if anything goes wrong *but* message me on discord @zachakaquack if you want to report something
 
-<!-- for zach: md docs https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax -->
+<!--md docs https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax-->
