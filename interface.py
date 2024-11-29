@@ -1,11 +1,21 @@
 import math
+import webbrowser
+from tokenize import Double
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg)
 
 import calculator
 
-from tkinter import StringVar, BooleanVar
+from tkinter import StringVar, BooleanVar, IntVar, DoubleVar
 
 import customtkinter as ctk
 from customtkinter import CTkFrame, CTkLabel, CTkFont, CTkScrollableFrame
+
+from calculator import get_pps_values
 
 
 class Program(ctk.CTk):
@@ -33,30 +43,44 @@ class Program(ctk.CTk):
         # title of window
         self.title("Zach's Replay Calculator")
 
-        # variables
-        self.enabled_rounds = []
-
         # extra
         self.font = CTkFont(family="Calibiri", size=12, weight="bold")
 
-        # outlines of the window
-        self.rowconfigure(0, weight=1, uniform="a")
-        self.rowconfigure(1, weight=2, uniform="a")
-        self.columnconfigure(0, weight=4, uniform="a")
-        self.columnconfigure(1, weight=1, uniform="a")
+        if calculator.get_gamemode() == "40l":
 
-        self.main_frame = CTkFrame(self, fg_color="#2b2b2b")
-        self.main_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+            self.rowconfigure(0, weight=1, uniform="a")
+            self.columnconfigure(0, weight=1, uniform="a")
 
-        self.main_frame.rowconfigure(0, weight=1, uniform="a")
+            self.main_frame = ctk.CTkScrollableFrame(self, fg_color="#242424")
+            self.main_frame.rowconfigure(0, weight=1, uniform="a")
+            self.main_frame.columnconfigure(0, weight=1, uniform="a")
+            self.main_frame.grid(row=0, column=0, sticky="nsew")
 
-        self.main_frame.columnconfigure(0, weight=1, uniform="a")
+            self.create_40l_mode()
 
-        self.create_all()
+        elif calculator.get_gamemode() is None or calculator.get_gamemode() == "league":  # vs sometimes is null for some reason
 
-    def load_file(self):
-        calculator.load_file()
-        self.create_all()
+            # variables
+            self.enabled_rounds = []
+
+            # outlines of the window
+            self.rowconfigure(0, weight=1, uniform="a")
+            self.rowconfigure(1, weight=2, uniform="a")
+            self.columnconfigure(0, weight=4, uniform="a")
+            self.columnconfigure(1, weight=1, uniform="a")
+
+            self.main_frame = CTkFrame(self, fg_color="#b2b2b2")
+            self.main_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+
+            self.main_frame.rowconfigure(0, weight=1, uniform="a")
+
+            self.main_frame.columnconfigure(0, weight=1, uniform="a")
+
+            self.create_vs_mode()
+
+    def load_file(self, type):
+        calculator.load_file(type)
+        self.create_vs_mode()
 
     def average_stats_button(self):
         rounds = []
@@ -79,7 +103,347 @@ class Program(ctk.CTk):
                                                                                                 column=0, padx=20,
                                                                                                 sticky="nsew")
 
-    def create_all(self):
+    def create_40l_mode(self):
+        self.create_40l_mode_information()
+        self.create_40l_mode_timer()
+
+    def create_40l_mode_timer(self):
+        fl_values = calculator.get_round_information()
+
+        font = ctk.CTkFont(family="Calibri", size=48, weight="bold")
+        big_font = ctk.CTkFont(family="Calibri", size=120, weight="bold")
+        tiny_font = ctk.CTkFont(family="Calibri", size=16, weight="bold")
+
+        # full container
+        full_time_frame = ctk.CTkFrame(self.main_frame, fg_color="#2b2b2b")
+
+        full_time_frame.rowconfigure(0, weight=1, uniform="a")
+        full_time_frame.rowconfigure(1, weight=4, uniform="a")
+        full_time_frame.columnconfigure(0, weight=1, uniform="a")
+
+        full_time_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+
+        # "Final Time" text
+        ctk.CTkLabel(full_time_frame, text="Final Time", font=font).grid(row=0, column=0, sticky="nsw", padx=25)
+
+        # inset frame
+        inset_time_frame = ctk.CTkFrame(full_time_frame, fg_color="#4b4b4b")
+
+        inset_time_frame.rowconfigure((0, 2), weight=1, uniform="a")
+        inset_time_frame.rowconfigure(1, weight=2, uniform="a")
+        inset_time_frame.columnconfigure(0, weight=1, uniform="a")
+
+        inset_time_frame.grid(row=1, column=0, sticky="ew", padx=25, pady=(15, 25))
+
+        # date played
+        date = fl_values.date_played
+        year = date[0]
+        month = date[1]
+        day = date[2]
+
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+        # date and timeplayed
+        ctk.CTkLabel(inset_time_frame,
+                     text="Played " + str(months[int(month) - 1]) + " " + str(day) + ", " + str(year) + "\n@ " +
+                          str(fl_values.time_played[0]) + ":" +
+                          str(fl_values.time_played[1]) + ":" +
+                          str(fl_values.time_played[2]),
+                     font=tiny_font).grid(row=0, column=0, sticky="nw", padx=10, pady=5)
+        #ctk.CTkLabel(inset_time_frame, text="test").grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
+
+        # time value
+        time = fl_values.finaltime
+
+        # so time doesnt end up like "1:0" when it's meant to be "1:00"
+        minutes = math.floor(time / 60)
+        seconds = time % 60
+
+        # adds zeros to complete the three decimals (turns 13.34 into 13.340)
+        possible_zeros = "0" * (3 - len(str(seconds)[3:]))
+
+        # actual time
+        formatted_time = f"{minutes}:{seconds}{possible_zeros}"
+
+        # time text
+        ctk.CTkLabel(inset_time_frame, text=formatted_time, font=big_font).grid(row=1, column=0, sticky="nsew")
+
+        def on_enter(e):
+            replay_button.configure(text_color="#2b2b2b")
+
+        def on_exit(e):
+            replay_button.configure(text_color="#dce4ee")
+
+        def send_to_replay():
+            webbrowser.open(f"https://tetr.io/#R:{fl_values.replay_id}")
+
+        # replay text
+        replay_button = ctk.CTkButton(inset_time_frame, text="Replay ID: " + str(fl_values.replay_id), font=tiny_font,
+                                      fg_color="#4b4b4b", hover_color="#4b4b4b", command=send_to_replay)
+        replay_button.grid(row=2, column=0, sticky="sw", padx=10, pady=5)
+
+        replay_button.bind("<Enter>", on_enter)
+        replay_button.bind("<Leave>", on_exit)
+
+    def create_40l_mode_information(self):
+        font = ctk.CTkFont(family="Calibri", size=36, weight="bold")
+
+        full_information_frame = ctk.CTkFrame(self.main_frame, fg_color="#2b2b2b")
+
+        full_information_frame.rowconfigure(0, weight=1, uniform="a")
+        full_information_frame.columnconfigure(0, weight=1, uniform="a")
+
+        full_information_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+
+        # stats text
+        ctk.CTkLabel(full_information_frame, text="Stats", font=font).grid(row=0, column=0, sticky="nsw", padx=25)
+
+        button_changer_frame = ctk.CTkFrame(full_information_frame, fg_color="#4b4b4b", corner_radius=0)
+
+        button_changer_frame.rowconfigure(0, weight=1, uniform="a")
+        button_changer_frame.columnconfigure((0, 1, 2), weight=1, uniform="a")
+
+        button_changer_frame.grid(row=1, column=0, sticky="ew", padx=25, pady=10)
+
+        overview_frame = ctk.CTkFrame(full_information_frame, fg_color="#4b4b4b", corner_radius=0)
+        clears_frame = ctk.CTkFrame(full_information_frame, fg_color="#4b4b4b", corner_radius=0)
+        pace_frame = ctk.CTkFrame(full_information_frame, fg_color="#4b4b4b", corner_radius=0)
+
+        overview_button = ctk.CTkButton(button_changer_frame, text="Overview", fg_color="#6b6b6b",
+                                        hover_color="#8b8b8b", height=50,
+                                        command=lambda: self.create_overview(overview_frame, clears_frame, pace_frame))
+        overview_button.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        full_button = ctk.CTkButton(button_changer_frame, text="Clears", fg_color="#6b6b6b", hover_color="#8b8b8b",
+                                    height=50,
+                                    command=lambda: self.create_clears(overview_frame, clears_frame, pace_frame))
+        full_button.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        pace_button = ctk.CTkButton(button_changer_frame, text="Pace", fg_color="#6b6b6b", hover_color="#8b8b8b",
+                                    height=50,
+                                    command=lambda: self.create_pace(overview_frame, clears_frame, pace_frame))
+        pace_button.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
+
+        self.create_overview(overview_frame, clears_frame, pace_frame)
+
+    def create_pace(self, overview_frame, clear_frame, pace_frame):
+
+        font = ctk.CTkFont(family="Calibri", size=36, weight="bold")
+
+        fl_values = calculator.get_round_information()
+
+        overview_frame.grid_forget()
+        clear_frame.grid_forget()
+        pace_frame.grid_forget()
+
+        pace_frame.grid(row=2, column=0, sticky="ew", padx=25, pady=10)
+
+        pace_frame.rowconfigure(0, weight=1, uniform="a")
+        pace_frame.rowconfigure(1, weight=5, uniform="a")
+        pace_frame.columnconfigure(0, weight=1, uniform="a")
+
+        pace_frame_info = ctk.CTkFrame(pace_frame, fg_color="#6b6b6b")
+
+        pace_frame_info.rowconfigure((0, 1), weight=1, uniform="a")
+        pace_frame_info.columnconfigure((0, 1, 2), weight=1, uniform="a")
+
+        pace_frame_info.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        ctk.CTkLabel(pace_frame_info, text="Time Chosen", font=font).grid(row=0, column=0, sticky="nsew")
+        ctk.CTkLabel(pace_frame_info, text="Predicted Pace", font=font).grid(row=0, column=1, sticky="nsew")
+        ctk.CTkLabel(pace_frame_info, text="PPS @ Time", font=font).grid(row=0, column=2, sticky="nsew")
+
+        time_chosen = StringVar(value="0.0 Seconds")
+        predicted_pace = StringVar(value="0.0 Seconds")
+        pps_at_time = StringVar(value="0.0 PPS")
+
+        ctk.CTkLabel(pace_frame_info, textvariable=time_chosen, font=font).grid(row=1, column=0, sticky="nsew")
+        ctk.CTkLabel(pace_frame_info, textvariable=predicted_pace, font=font).grid(row=1, column=1, sticky="nsew")
+        ctk.CTkLabel(pace_frame_info, textvariable=pps_at_time, font=font).grid(row=1, column=2, sticky="nsew")
+
+        # PLOTTING ------------------------
+        # configuring the font that doenst even work lol
+        plt.rcParams["font.size"] = 24
+        plt.rcParams["font.family"] = "sans-serif"
+        plt.rcParams["font.sans-serif"] = "Calibri"
+
+        # the figure that will contain the plot
+        fig, ax = plt.subplots(facecolor="#6b6b6b")
+
+        # plot points
+        x = calculator.get_pps_values()[1]
+        y = calculator.get_pps_values()[0]
+
+        # x label
+        plt.xlabel("Time (Seconds)")
+        # y label
+        plt.ylabel("PPS")
+        # title
+        plt.title("Click on Graph to Find Pace for that PPS")
+
+        # turn on the grid
+        ax.grid(which='major', color='#DDDDDD', linewidth=0.8)
+        ax.grid(which='minor', color='#EEEEEE', linestyle=':', linewidth=0.5)
+
+        # enable the tiny ticks
+        plt.minorticks_on()
+
+        # enable the tiny ticks pt 2
+        ax.tick_params(axis='both', which='major', labelsize=8)
+        ax.tick_params(axis='both', which='minor', labelsize=8)
+
+        # how often the ticks appear
+        tick_frequency = 1
+
+        # make the ticks appear more often
+        plt.xticks(np.arange(min(x), max(x) + 1, tick_frequency))
+        plt.yticks(np.arange(min(y), max(y) + 1, tick_frequency))
+
+        # create canvas
+        canvas = FigureCanvasTkAgg(fig, master=pace_frame)
+
+        # Plot data on Matplotlib Figure
+        ax.plot(x, y, c="black")
+
+        # lim called here because of autoplotting
+        plt.xlim((0, math.ceil(max(x))))
+        plt.ylim((0, 10))
+
+        # draw the plot
+        canvas.draw()
+
+        # gridding
+        canvas.get_tk_widget().grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        def calc_pace(e):
+            temp = []
+            if e.xdata is not None:
+                for i in range(len(x)):
+                    if x[i] < e.xdata:
+                        temp.append(x[i])
+                time = temp[-1]
+
+                info = calculator.calculate_pace(0, time * 60)
+                time_chosen.set(str(round(info[0], 2)) + " Seconds")
+                predicted_pace.set(str(round(info[1], 2)) + " Seconds")
+                pps_at_time.set(str(round(info[2], 2)) + " PPS")
+
+        # getting the x position of your cursor to determine where the pace should start
+        fig.canvas.callbacks.connect('button_press_event', calc_pace)
+
+    def create_overview(self, overview_frame, clear_frame, pace_frame):
+
+        font = ctk.CTkFont(family="Calibri", size=36, weight="bold")
+
+        fl_values = calculator.get_round_information()
+
+        overview_frame.grid_forget()
+        clear_frame.grid_forget()
+        pace_frame.grid_forget()
+
+        overview_frame.grid(row=2, column=0, sticky="ew", padx=25, pady=10)
+
+        stats_name = [
+            "Played By",
+            "Pieces Per Second",
+            "Pieces Placed",
+            "Total Inputs",
+            "Total Holds",
+            "Finesse Faults",
+            "Finesse Perfects"
+        ]
+
+        stats = [
+            fl_values.username,
+            fl_values.pps,
+            fl_values.piecesplaced,
+            fl_values.inputs,
+            fl_values.holds,
+            fl_values.finessefaults,
+            fl_values.finesseperfects
+        ]
+
+        rows = [0, 1, 2, 3, 4, 5, 6]
+
+        overview_frame.rowconfigure(0, weight=1, uniform="a")
+        overview_frame.columnconfigure((0, 1), weight=1, uniform="a")
+        val = ctk.IntVar(value=1)
+        for i in range(len(rows)):
+            ctk.CTkLabel(overview_frame, text=str(stats_name[i]), font=font).grid(row=i, column=0, sticky="nsw",
+                                                                                  padx=15)
+            if i != len(rows) - 1:
+                ctk.CTkLabel(overview_frame, text=str(stats[i]), font=font).grid(row=i, column=1, sticky="nse",
+                                                                                 padx=15)
+
+                ctk.CTkProgressBar(overview_frame, progress_color="#dce4ee", variable=val, corner_radius=50,
+                                   height=5).grid(row=i, column=0, columnspan=2, sticky="ew", padx=15,
+                                                  pady=(100, 0))
+            else:
+                ctk.CTkLabel(overview_frame, text=str(stats[i]), font=font).grid(row=i, column=1, sticky="nse",
+                                                                                 padx=15, pady=(35, 35))
+
+    def create_clears(self, overview_frame, clears_frame, pace_frame):
+
+        font = ctk.CTkFont(family="Calibri", size=36, weight="bold")
+
+        fl_values = calculator.get_round_information()
+
+        overview_frame.grid_forget()
+        clears_frame.grid_forget()
+        pace_frame.grid_forget()
+
+        clears_frame.grid(row=2, column=0, sticky="ew", padx=25, pady=10)
+
+        clears_name = [
+            "Singles",
+            "Doubles",
+            "Triples",
+            "Quads",
+            "Mini T-Spins",
+            "Mini T-Spin Singles",
+            "T-Spin Singles",
+            "Mini T-Spin Doubles",
+            "T-Spins Doubles",
+            "Mini T-Spin Triples",
+            "T-Spin Triples",
+            "All Clears",
+        ]
+
+        clears = [
+            fl_values.clears["singles"],
+            fl_values.clears["doubles"],
+            fl_values.clears["triples"],
+            fl_values.clears["quads"],
+            fl_values.clears["minitspins"],
+            fl_values.clears["minitspinsingles"],
+            fl_values.clears["tspinsingles"],
+            fl_values.clears["minitspindoubles"],
+            fl_values.clears["tspindoubles"],
+            fl_values.clears["minitspintriples"],
+            fl_values.clears["tspintriples"],
+            fl_values.clears["allclear"]
+        ]
+
+        rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+        clears_frame.rowconfigure(0, weight=1, uniform="a")
+        clears_frame.columnconfigure((0, 1), weight=1, uniform="a")
+        val = ctk.IntVar(value=1)
+        for i in range(len(rows)):
+            ctk.CTkLabel(clears_frame, text=str(clears_name[i]), font=font).grid(row=i, column=0, sticky="nsw",
+                                                                                 padx=15)
+            if i != len(rows) - 1:
+                ctk.CTkLabel(clears_frame, text=str(clears[i]), font=font).grid(row=i, column=1, sticky="nse",
+                                                                                padx=15)
+
+                ctk.CTkProgressBar(clears_frame, progress_color="#dce4ee", variable=val, corner_radius=50,
+                                   height=5).grid(row=i, column=0, columnspan=2, sticky="ew", padx=15,
+                                                  pady=(100, 0))
+            else:
+                ctk.CTkLabel(clears_frame, text=str(clears[i]), font=font).grid(row=i, column=1, sticky="nse",
+                                                                                padx=15, pady=(35, 35))
+
+    def create_vs_mode(self):
 
         rounds_values = calculator.get_round_information()
 
@@ -138,11 +502,8 @@ class Program(ctk.CTk):
         loser_blue_color = "#293c49"
         loser_red_color = "#4a2117"
 
-
         for i in range(len(rounds_values)):
             # WINNER IS FIRST PERSON IN ALPHABET, AKA PLAYER ONE (BLUE WIN, RED LOSE)
-            #print(rounds_values[i].winner, rounds_values[i].usernames)
-            #print(rounds_values[i].print_information())
             if rounds_values[i].winner == rounds_values[i].usernames[0]:
                 blue_color = winner_blue_color
                 red_color = loser_red_color
@@ -202,7 +563,6 @@ class TopBar(ctk.CTkFrame):
             player_one = player_two
             player_two = temp
 
-
         font = CTkFont(family="Calibiri", weight="bold", size=48)
         smaller_font = CTkFont(family="Calibiri", weight="bold", size=24)
 
@@ -223,7 +583,6 @@ class TopBar(ctk.CTkFrame):
                                                                                                           sticky="nsew",
                                                                                                           padx=20,
                                                                                                           pady=10)
-
 
         CTkLabel(self, text=str(player_one.win_count) + " - " + str(player_two.win_count), font=font,
                  fg_color="#2b2b2b", corner_radius=10
@@ -380,7 +739,6 @@ class MoreInformation(ctk.CTkScrollableFrame):
 
         for round_ in range(len(rounds_values)):
 
-
             if rounds_values[round_].winner == rounds_values[round_].usernames[0]:
                 blue_color = winner_blue_color
                 red_color = loser_red_color
@@ -485,7 +843,7 @@ class Sidebar(ctk.CTkFrame):
         self.master1 = master
         self.rowconfigure(0, weight=1, uniform="a")
         self.rowconfigure(1, weight=5, uniform="a")
-        self.rowconfigure((2, 3, 4, 5), weight=1, uniform="a")
+        self.rowconfigure((2, 3, 4), weight=1, uniform="a")
         self.columnconfigure(0, weight=1, uniform="a")
 
         self.enable_all_rounds_button = ctk.CTkButton(self, text="Enable All Rounds", height=40,
@@ -500,9 +858,9 @@ class Sidebar(ctk.CTkFrame):
                                                    command=self.build_average_stats)
         self.average_rounds_button.grid(row=4, column=0, sticky="ew", padx=10)
 
-        self.load_new_file_button = ctk.CTkButton(self, text="Load New Replay (File)", height=40,
-                                                  command=master.load_file)
-        self.load_new_file_button.grid(row=5, column=0, sticky="ew", padx=10)
+        self.load_new_file_button = ctk.CTkButton(self, text="Load New !!VS!! Replay (File)", height=40,
+                                                  command=lambda: master.load_file("vs"))
+        #self.load_new_file_button.grid(row=5, column=0, sticky="ew", padx=10)
 
         # TODO:
         # ASK OSK ABOUT REPLAY DOWNLOADING
