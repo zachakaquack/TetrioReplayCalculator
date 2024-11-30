@@ -1,21 +1,18 @@
 import math
 import webbrowser
-from tokenize import Double
 
-import numpy as np
-
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg)
-
-import calculator
-
-from tkinter import StringVar, BooleanVar, IntVar, DoubleVar
+from tkinter import StringVar, BooleanVar
 
 import customtkinter as ctk
 from customtkinter import CTkFrame, CTkLabel, CTkFont, CTkScrollableFrame
 
-from calculator import get_pps_values
+import matplotlib
+import matplotlib.pyplot as plt
+
+import calculator
+
+
+
 
 
 class Program(ctk.CTk):
@@ -293,14 +290,22 @@ class Program(ctk.CTk):
         ax.tick_params(axis='both', which='minor', labelsize=8)
 
         # how often the ticks appear
-        tick_frequency = 1
+        x_ticks = []
+        y_ticks = []
+        for i in range(math.ceil(fl_values.finaltime)):
+            x_ticks.append(i)
+
+        for i in range(11):
+            y_ticks.append(i)
+
+        #print(x_ticks)
 
         # make the ticks appear more often
-        plt.xticks(np.arange(min(x), max(x) + 1, tick_frequency))
-        plt.yticks(np.arange(min(y), max(y) + 1, tick_frequency))
+        plt.xticks(x_ticks)
+        plt.yticks(y_ticks)
 
         # create canvas
-        canvas = FigureCanvasTkAgg(fig, master=pace_frame)
+        canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, master=pace_frame)
 
         # Plot data on Matplotlib Figure
         ax.plot(x, y, c="black")
